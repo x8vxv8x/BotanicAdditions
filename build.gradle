@@ -45,7 +45,7 @@ version = propertyString('mod_version')
 group = propertyString('root_package')
 
 base {
-    archivesName.set(propertyString('mod_id'))
+    archivesName.set(propertyString('mod_name'))
 }
 
 tasks.decompressDecompiledSources.enabled !propertyBool('change_minecraft_sources')
@@ -107,6 +107,10 @@ repositories {
         name 'CleanroomMC Maven'
         url 'https://maven.cleanroommc.com'
     }
+    maven {
+        name = "Zeitheron Maven"
+        url = "https://maven.zeith.org"
+    }
 }
 
 dependencies {
@@ -125,6 +129,15 @@ dependencies {
             transitive = false // We only care about the 1 annotation class
         }
     }
+
+    implementation "curse.maven:jei-238222:5846804"
+    implementation "curse.maven:baubles-227083:2518667"
+    implementation "curse.maven:hwyla-253449:2568751"
+    implementation "org.zeith.HammerLib:HammerLib-1.12.2:12.2.58"
+    implementation "curse.maven:Botania-225643:3330934"
+    implementation "curse.maven:Patchouli-306770:3162874"
+    implementation "curse.maven:crafttweaker-239197:6669824"
+
     if (propertyBool('use_asset_mover')) {
         implementation "com.cleanroommc:assetmover:${propertyString('asset_mover_version')}"
     }
