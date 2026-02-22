@@ -73,7 +73,7 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 		return l;
 	}
 
-	public static final int MANA_CAP = 50000;
+	public static final int MANA_CAP = 10000000;
 
 	public int mana;
 	public EnumDyeColor color = EnumDyeColor.WHITE;
@@ -82,7 +82,6 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 	public int channel;
 	public int lastKnownMana = -1;
 
-	// 标记是否已经尝试生成频道（只在第一次tick时检查）
 	private boolean generatedChannel = false;
 
 	public void setOwner(UUID owner)
@@ -104,12 +103,10 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 	@Override
 	public void tick()
 	{
-		// 首次tick时，如果频道为0且世界有效，则自动生成基于位置的频道
 		if (!generatedChannel && world != null && !world.isRemote) {
 			if (channel == 0 && pos != null) {
-				// 使用坐标的hashCode异或维度ID，并确保为正数
 				channel = (pos.hashCode() ^ world.provider.getDimension()) & Integer.MAX_VALUE;
-				if (channel == 0) channel = 1; // 避免0值
+				if (channel == 0) channel = 1;
 				markDirty();
 			}
 			generatedChannel = true;
@@ -156,12 +153,10 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 	@Override
 	public void readNBT(NBTTagCompound nbt)
 	{
-		// 注意：此处没有调用super.readNBT，因为父类可能是抽象方法
 		mana = nbt.getInteger("Mana");
 		color = EnumDyeColor.byDyeDamage(nbt.getByte("Color"));
 		owner = nbt.getUniqueId("Owner");
 		channel = nbt.getInteger("Channel");
-		// 频道生成交给tick处理，避免world为null
 	}
 
 	@Override
@@ -260,11 +255,16 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 	{
 		HUDHandler.drawSimpleManaHUD(0x44FF44, getLastKnownMana(), MANA_CAP, BlocksBA.MANA_TESSERACT.getLocalizedName(), res);
 
-		int x = res.getScaledWidth() / 2 - 11;
-		int y = res.getScaledHeight() / 2 + 30;
+		int centerX = res.getScaledWidth() / 2;
+		int baseY = res.getScaledHeight() / 2 + 30;
 
-		String str = "Channel: " + Integer.toString(channel, Character.MAX_RADIX);
-		mc.fontRenderer.drawString(str, x - mc.fontRenderer.getStringWidth(str) / 2, y, 0xFFFFFF, true);
+		String manaStr = String.format("Mana: %,d / %,d", getLastKnownMana(), MANA_CAP);
+		int manaStrWidth = mc.fontRenderer.getStringWidth(manaStr);
+		mc.fontRenderer.drawString(manaStr, centerX - manaStrWidth / 2, baseY, 0xFFFFFF, true);
+
+		String channelStr = "Channel: " + Integer.toString(channel, Character.MAX_RADIX);
+		int channelStrWidth = mc.fontRenderer.getStringWidth(channelStr);
+		mc.fontRenderer.drawString(channelStr, centerX - channelStrWidth / 2, baseY + 15, 0xFFFFFF, true); // 两行间距15像素
 
 		GlStateManager.disableLighting();
 		GlStateManager.disableBlend();
