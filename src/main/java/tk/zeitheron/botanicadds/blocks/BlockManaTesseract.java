@@ -70,10 +70,9 @@ public class BlockManaTesseract extends BlockTileHC<TileManaTesseract> implement
 	{
 		ItemStack held = player.getHeldItem(hand);
 		if (held.getItem() != Item.getItemFromBlock(this)) {
-			return false; // 手中不是Tesseract，不处理
+			return false;
 		}
 
-		// 客户端仅返回true以播放动画，实际逻辑在服务端执行
 		if (world.isRemote) {
 			return true;
 		}
@@ -91,30 +90,17 @@ public class BlockManaTesseract extends BlockTileHC<TileManaTesseract> implement
 			return true;
 		}
 
-		// 如果手中物品已有频道，不允许覆盖（可以根据需要修改为允许覆盖）
-		if (held.hasTagCompound() && held.getTagCompound().hasKey("Channel")) {
-			player.sendStatusMessage(new TextComponentTranslation("message.tesseract.already_bound"), true);
-			return true;
+		NBTTagCompound nbt = held.getTagCompound();
+		if (nbt == null) {
+			nbt = new NBTTagCompound();
 		}
-
-		// 创建绑定频道的新物品
-		ItemStack newStack = new ItemStack(this, 1);
-		NBTTagCompound nbt = new NBTTagCompound();
 		nbt.setInteger("Channel", channel);
-		newStack.setTagCompound(nbt);
-
-		// 消耗原物品
-		if (!player.isCreative()) {
-			held.shrink(1);
-		}
-
-		// 给予新物品
-		if (!player.inventory.addItemStackToInventory(newStack)) {
-			player.dropItem(newStack, false);
-		}
+		held.setTagCompound(nbt);
 
 		world.playSound(null, pos, ModSounds.ding, SoundCategory.PLAYERS, 0.5F, 1.0F);
 		player.sendStatusMessage(new TextComponentTranslation("message.tesseract.copied", Integer.toString(channel, Character.MAX_RADIX)), true);
+
+		player.inventory.markDirty();
 		return true;
 	}
 

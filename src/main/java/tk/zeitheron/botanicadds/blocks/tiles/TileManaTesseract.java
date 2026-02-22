@@ -51,9 +51,14 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 			if(l.isEmpty())
 			{
 				Int2ObjectMap<List<TileManaTesseract>> channels = TESSERACTS.get(tile.owner);
-				if(channels == null)
-					TESSERACTS.put(tile.owner, channels = new Int2ObjectArrayMap<>());
-				channels.remove(tile.channel);
+				if(channels != null)
+				{
+					channels.remove(tile.channel);
+					if(channels.isEmpty())
+					{
+						TESSERACTS.remove(tile.owner);
+					}
+				}
 			}
 		}
 	}
@@ -125,18 +130,25 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 			tesses.removeIf(t -> t.isInvalid());
 			if(!tesses.isEmpty() && tesses.get(0) == this)
 			{
-				long mana = 0L;
+				long totalMana = 0L;
 				int pools = tesses.size();
 				for(TileManaTesseract t : tesses)
-					mana += t.mana;
-				int per = (int) (mana / pools);
+					totalMana += t.mana;
+
+				if(totalMana == 0) return;
+
+				int per = (int) (totalMana / pools);
+				int remainder = (int) (totalMana - per * pools);
+
 				for(TileManaTesseract t : tesses)
 				{
 					t.mana = per;
 					if(t.mana != per)
 						t.sendChangesToNearby();
 				}
-				this.mana += mana - per * pools;
+				this.mana += remainder;
+				if(remainder != 0)
+					this.sendChangesToNearby();
 			}
 		}
 	}
