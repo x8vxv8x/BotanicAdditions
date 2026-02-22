@@ -1,5 +1,7 @@
 package tk.zeitheron.botanicadds.flowers;
 
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import tk.zeitheron.botanicadds.flowers.base.Flower;
 import tk.zeitheron.botanicadds.flowers.base.SubTilePassiveGen;
 import tk.zeitheron.botanicadds.init.LexiconBA;
@@ -12,7 +14,11 @@ public class RainFlower extends SubTilePassiveGen
 	@Override
 	public void generateMana()
 	{
-		if(getWorld().isRainingAt(getPos()))
+
+		World world = getWorld();
+		BlockPos pos = getPos();
+
+		if (world.isRaining() && world.canSeeSky(pos) && world.getBiome(pos).canRain())
 		{
 			int delay = getDelayBetweenPassiveGeneration();
 			if(delay > 0 && ticksExisted % delay == 0 && !supertile.getWorld().isRemote)
