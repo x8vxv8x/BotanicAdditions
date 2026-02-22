@@ -8,7 +8,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import tk.zeitheron.botanicadds.InfoBA;
-import tk.zeitheron.botanicadds.recipes.RecipeLinkTesseract;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.recipe.RecipePureDaisy;
 import vazkii.botania.common.block.ModBlocks;
@@ -38,7 +37,6 @@ public class RecipesBA
 		ModContainer prev = Loader.instance().activeModContainer();
 		Loader.instance().setActiveModContainer(getOwner());
 
-		recipe(new RecipeLinkTesseract().setRegistryName("mana_tesseract_bind"));
 		recipe(SimpleRegistration.parseShapedRecipe(new ItemStack(BlocksBA.TERRA_CATALYST), "sgs", "tct", "sts", 's', new ItemStack(ModBlocks.shimmerrock), 't', LibOreDict.TERRA_STEEL, 'g', LibOreDict.LIFE_ESSENCE, 'c', new ItemStack(ModBlocks.alchemyCatalyst)).setRegistryName(terra_catalyst));
 		recipe(SimpleRegistration.parseShapedRecipe(new ItemStack(BlocksBA.MANA_LAPIS_BLOCK), "lll", "lll", "lll", 'l', new ItemStack(ItemsBA.MANA_LAPIS)).setRegistryName(mana_lapis_block));
 		recipe(SimpleRegistration.parseShapelessRecipe(new ItemStack(ItemsBA.MANA_LAPIS, 9), new ItemStack(BlocksBA.MANA_LAPIS_BLOCK)).setRegistryName(mana_lapis));

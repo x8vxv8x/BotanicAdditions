@@ -2,6 +2,7 @@ package tk.zeitheron.botanicadds.blocks;
 
 import java.util.List;
 
+import net.minecraft.tileentity.TileEntity;
 import tk.zeitheron.botanicadds.blocks.tiles.TileManaTesseract;
 import tk.zeitheron.botanicadds.init.LexiconBA;
 import tk.zeitheron.botanicadds.net.PacketSendLKMana;
@@ -17,11 +18,14 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -39,7 +43,7 @@ public class BlockManaTesseract extends BlockTileHC<TileManaTesseract> implement
 		setHardness(2.0F);
 		setResistance(10.0F);
 	}
-	
+
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn)
@@ -47,7 +51,7 @@ public class BlockManaTesseract extends BlockTileHC<TileManaTesseract> implement
 		if(stack.hasTagCompound())
 			tooltip.add("Channel: " + Integer.toString(stack.getTagCompound().getInteger("Channel"), Character.MAX_RADIX));
 	}
-	
+
 	@Override
 	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
 	{
@@ -55,9 +59,65 @@ public class BlockManaTesseract extends BlockTileHC<TileManaTesseract> implement
 		if(tess == null)
 			worldIn.setTileEntity(pos, tess = new TileManaTesseract());
 		tess.setOwner(placer.getUniqueID());
-		tess.setLink((!stack.hasTagCompound() ? new NBTTagCompound() : stack.getTagCompound()).getInteger("Channel"));
+		// 如果物品有频道NBT，则设置它；否则让Tile自动生成（在readNBT中处理）
+		if (stack.hasTagCompound() && stack.getTagCompound().hasKey("Channel")) {
+			tess.setLink(stack.getTagCompound().getInteger("Channel"));
+		}
 	}
-	
+
+	@Override
+	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ)
+	{
+		ItemStack held = player.getHeldItem(hand);
+		if (held.getItem() != Item.getItemFromBlock(this)) {
+			return false; // 手中不是Tesseract，不处理
+		}
+
+		// 客户端仅返回true以播放动画，实际逻辑在服务端执行
+		if (world.isRemote) {
+			return true;
+		}
+
+		TileEntity tile = world.getTileEntity(pos);
+		if (!(tile instanceof TileManaTesseract)) {
+			return false;
+		}
+
+		TileManaTesseract target = (TileManaTesseract) tile;
+		int channel = target.channel;
+
+		if (channel == 0) {
+			player.sendStatusMessage(new TextComponentTranslation("message.tesseract.not_bound"), true);
+			return true;
+		}
+
+		// 如果手中物品已有频道，不允许覆盖（可以根据需要修改为允许覆盖）
+		if (held.hasTagCompound() && held.getTagCompound().hasKey("Channel")) {
+			player.sendStatusMessage(new TextComponentTranslation("message.tesseract.already_bound"), true);
+			return true;
+		}
+
+		// 创建绑定频道的新物品
+		ItemStack newStack = new ItemStack(this, 1);
+		NBTTagCompound nbt = new NBTTagCompound();
+		nbt.setInteger("Channel", channel);
+		newStack.setTagCompound(nbt);
+
+		// 消耗原物品
+		if (!player.isCreative()) {
+			held.shrink(1);
+		}
+
+		// 给予新物品
+		if (!player.inventory.addItemStackToInventory(newStack)) {
+			player.dropItem(newStack, false);
+		}
+
+		world.playSound(null, pos, ModSounds.ding, SoundCategory.PLAYERS, 0.5F, 1.0F);
+		player.sendStatusMessage(new TextComponentTranslation("message.tesseract.copied", Integer.toString(channel, Character.MAX_RADIX)), true);
+		return true;
+	}
+
 	@SideOnly(Side.CLIENT)
 	@Override
 	public void renderHUD(Minecraft mc, ScaledResolution res, World world, BlockPos pos)
@@ -66,7 +126,7 @@ public class BlockManaTesseract extends BlockTileHC<TileManaTesseract> implement
 		if(t != null)
 			t.renderHUD(mc, res);
 	}
-	
+
 	@Override
 	public boolean onUsedByWand(EntityPlayer player, ItemStack stack, World world, BlockPos pos, EnumFacing side)
 	{

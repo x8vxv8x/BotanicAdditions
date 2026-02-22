@@ -34,20 +34,20 @@ import vazkii.botania.common.core.handler.ManaNetworkHandler;
 public class TileManaTesseract extends TileSyncableTickable implements ISparkAttachable, IManaPool, ILastManaAknowledgedTile
 {
 	public static final Map<UUID, Int2ObjectMap<List<TileManaTesseract>>> TESSERACTS = new HashMap<>();
-	
+
 	public static void addTesseract(TileManaTesseract tile)
 	{
 		List<TileManaTesseract> l = getTesseracts(tile);
 		if(!l.contains(tile))
 			l.add(tile);
 	}
-	
+
 	public static void removeTesseract(TileManaTesseract tile)
 	{
 		List<TileManaTesseract> l = getTesseracts(tile);
 		if(l.contains(tile))
 		{
-			l.add(tile);
+			l.remove(tile);
 			if(l.isEmpty())
 			{
 				Int2ObjectMap<List<TileManaTesseract>> channels = TESSERACTS.get(tile.owner);
@@ -57,13 +57,13 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 			}
 		}
 	}
-	
+
 	public static List<TileManaTesseract> getTesseracts(TileManaTesseract tile)
 	{
 		// Prevent client-side bothering
 		if(tile.world.isRemote)
 			return new ArrayList<>();
-		
+
 		Int2ObjectMap<List<TileManaTesseract>> channels = TESSERACTS.get(tile.owner);
 		if(channels == null)
 			TESSERACTS.put(tile.owner, channels = new Int2ObjectArrayMap<>());
@@ -72,40 +72,55 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 			channels.put(tile.channel, l = new ArrayList<>());
 		return l;
 	}
-	
+
 	public static final int MANA_CAP = 50000;
-	
+
 	public int mana;
 	public EnumDyeColor color = EnumDyeColor.WHITE;
 	public UUID owner = UUID.randomUUID();
-	
+
 	public int channel;
 	public int lastKnownMana = -1;
-	
+
+	// 标记是否已经尝试生成频道（只在第一次tick时检查）
+	private boolean generatedChannel = false;
+
 	public void setOwner(UUID owner)
 	{
 		this.owner = owner;
 	}
-	
+
 	public void setLink(int channel)
 	{
 		this.channel = channel;
+		markDirty();
 	}
-	
+
 	public static int computeHash(ItemStack stack)
 	{
 		return stack.copy().splitStack(1).serializeNBT().hashCode();
 	}
-	
+
 	@Override
 	public void tick()
 	{
+		// 首次tick时，如果频道为0且世界有效，则自动生成基于位置的频道
+		if (!generatedChannel && world != null && !world.isRemote) {
+			if (channel == 0 && pos != null) {
+				// 使用坐标的hashCode异或维度ID，并确保为正数
+				channel = (pos.hashCode() ^ world.provider.getDimension()) & Integer.MAX_VALUE;
+				if (channel == 0) channel = 1; // 避免0值
+				markDirty();
+			}
+			generatedChannel = true;
+		}
+
 		if(!ManaNetworkHandler.instance.isPoolIn(this) && !isInvalid())
 		{
 			ManaNetworkEvent.addPool(this);
 			addTesseract(this);
 		}
-		
+
 		// Share mana
 		if(atTickRate(20) && !world.isRemote)
 		{
@@ -128,7 +143,7 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 			}
 		}
 	}
-	
+
 	@Override
 	public void writeNBT(NBTTagCompound nbt)
 	{
@@ -137,16 +152,18 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 		nbt.setUniqueId("Owner", owner);
 		nbt.setInteger("Channel", channel);
 	}
-	
+
 	@Override
 	public void readNBT(NBTTagCompound nbt)
 	{
+		// 注意：此处没有调用super.readNBT，因为父类可能是抽象方法
 		mana = nbt.getInteger("Mana");
 		color = EnumDyeColor.byDyeDamage(nbt.getByte("Color"));
 		owner = nbt.getUniqueId("Owner");
 		channel = nbt.getInteger("Channel");
+		// 频道生成交给tick处理，避免world为null
 	}
-	
+
 	@Override
 	public void invalidate()
 	{
@@ -154,7 +171,7 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 		ManaNetworkEvent.removePool(this);
 		removeTesseract(this);
 	}
-	
+
 	@Override
 	public void onChunkUnload()
 	{
@@ -162,42 +179,42 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 		ManaNetworkEvent.removePool(this);
 		removeTesseract(this);
 	}
-	
+
 	@Override
 	public boolean isFull()
 	{
 		return mana >= MANA_CAP;
 	}
-	
+
 	@Override
 	public void recieveMana(int mana)
 	{
 		this.mana = Math.min(this.mana + mana, MANA_CAP);
 	}
-	
+
 	@Override
 	public boolean canRecieveManaFromBursts()
 	{
 		return mana < MANA_CAP;
 	}
-	
+
 	@Override
 	public int getCurrentMana()
 	{
 		return mana;
 	}
-	
+
 	@Override
 	public boolean canAttachSpark(ItemStack stack)
 	{
 		return true;
 	}
-	
+
 	@Override
 	public void attachSpark(ISparkEntity entity)
 	{
 	}
-	
+
 	@Override
 	public ISparkEntity getAttachedSpark()
 	{
@@ -206,49 +223,49 @@ public class TileManaTesseract extends TileSyncableTickable implements ISparkAtt
 			return (ISparkEntity) sparks.get(0);
 		return null;
 	}
-	
+
 	@Override
 	public int getAvailableSpaceForMana()
 	{
 		return Math.max(0, MANA_CAP - mana);
 	}
-	
+
 	@Override
 	public boolean areIncomingTranfersDone()
 	{
 		return !canRecieveManaFromBursts();
 	}
-	
+
 	@Override
 	public boolean isOutputtingPower()
 	{
 		return false;
 	}
-	
+
 	@Override
 	public EnumDyeColor getColor()
 	{
 		return color;
 	}
-	
+
 	@Override
 	public void setColor(EnumDyeColor color)
 	{
 		this.color = color;
 		world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 0b1011);
 	}
-	
+
 	@SideOnly(Side.CLIENT)
 	public void renderHUD(Minecraft mc, ScaledResolution res)
 	{
 		HUDHandler.drawSimpleManaHUD(0x44FF44, getLastKnownMana(), MANA_CAP, BlocksBA.MANA_TESSERACT.getLocalizedName(), res);
-		
+
 		int x = res.getScaledWidth() / 2 - 11;
 		int y = res.getScaledHeight() / 2 + 30;
-		
+
 		String str = "Channel: " + Integer.toString(channel, Character.MAX_RADIX);
 		mc.fontRenderer.drawString(str, x - mc.fontRenderer.getStringWidth(str) / 2, y, 0xFFFFFF, true);
-		
+
 		GlStateManager.disableLighting();
 		GlStateManager.disableBlend();
 	}
