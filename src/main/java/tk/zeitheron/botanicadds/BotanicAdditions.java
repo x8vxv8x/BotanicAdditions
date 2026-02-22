@@ -42,7 +42,7 @@ import vazkii.botania.common.lib.LibOreDict;
 import java.util.List;
 
 @EventBusSubscriber
-@Mod(modid = InfoBA.MOD_ID, name = InfoBA.MOD_NAME, version = InfoBA.MOD_VERSION, dependencies = "required-after:hammercore;required-after:botania", certificateFingerprint = "9f5e2a811a8332a842b34f6967b7db0ac4f24856", updateJSON = "http://dccg.herokuapp.com/api/fmluc/310637")
+@Mod(modid = InfoBA.MOD_ID, name = InfoBA.MOD_NAME, version = InfoBA.MOD_VERSION, dependencies = "required-after:hammercore;required-after:botania")
 public class BotanicAdditions
 {
 	public static final List<Class<? extends SubTileEntity>> flowers = null;
@@ -79,16 +79,6 @@ public class BotanicAdditions
 			}
 		}
 	};
-
-	@EventHandler
-	public void certificateViolation(FMLFingerprintViolationEvent e)
-	{
-		LOG.warn("*****************************");
-		LOG.warn("WARNING: Somebody has been tampering with BotanicAdditions jar!");
-		LOG.warn("It is highly recommended that you redownload mod from https://www.curseforge.com/projects/310637 !");
-		LOG.warn("*****************************");
-		HammerCore.invalidCertificates.put(InfoBA.MOD_ID, "https://www.curseforge.com/projects/310637");
-	}
 
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent e)
