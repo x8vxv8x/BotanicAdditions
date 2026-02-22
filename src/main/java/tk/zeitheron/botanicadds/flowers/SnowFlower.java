@@ -1,9 +1,10 @@
 package tk.zeitheron.botanicadds.flowers;
 
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import tk.zeitheron.botanicadds.flowers.base.Flower;
 import tk.zeitheron.botanicadds.flowers.base.SubTilePassiveGen;
 import tk.zeitheron.botanicadds.init.LexiconBA;
-import tk.zeitheron.botanicadds.utils.WorldUtil;
 
 import vazkii.botania.api.lexicon.LexiconEntry;
 
@@ -13,7 +14,11 @@ public class SnowFlower extends SubTilePassiveGen
 	@Override
 	public void generateMana()
 	{
-		if(WorldUtil.isSnowingAt(getWorld(), getPos()))
+
+		World world = getWorld();
+		BlockPos pos = getPos();
+
+		if (world.isRaining() && world.canSeeSky(pos) && world.getBiome(pos).getTemperature(pos) <= 0.15f)
 		{
 			int delay = getDelayBetweenPassiveGeneration();
 			if(delay > 0 && ticksExisted % delay == 0 && !supertile.getWorld().isRemote)
