@@ -28,7 +28,6 @@ public class LexiconBA
 	public static LexiconEntry snow_flower;
 	public static LexiconEntry lightning_flower;
 	public static LexiconEntry mana_tesseract;
-	public static LexiconEntry terra_catalyst;
 	public static LexiconEntry elven_altar;
 	public static LexiconEntry dreaming_pool;
 	public static LexiconEntry gaia_plate;
@@ -62,9 +61,6 @@ public class LexiconBA
 		// Mana Tesseract
 		mana_tesseract = new BasicLexiconEntry("ba_mana_tesseract", categoryBotanicAdditions).setPriority().setLexiconPages(new PageText("1"), new PageRuneRecipe("2", AltarRecipesBA.mana_tesseract));
 		mana_tesseract.setIcon(new ItemStack(BlocksBA.MANA_TESSERACT));
-		// Terra Catalyst
-		terra_catalyst = new BasicLexiconEntry("ba_terra_catalyst", categoryBotanicAdditions).setPriority().setKnowledgeType(BotaniaAPI.elvenKnowledge).setLexiconPages(new PageText("1"), new PageCraftingRecipe("2", RecipesBA.terra_catalyst), new PageManaInfusionRecipe("3", PoolRecipesBA.gaia_shard));
-		terra_catalyst.setIcon(new ItemStack(BlocksBA.TERRA_CATALYST));
 		// Elven Altar
 		elven_altar = new BasicLexiconEntry("ba_elven_altar", categoryBotanicAdditions).setPriority().setKnowledgeType(BotaniaAPI.elvenKnowledge).setLexiconPages(new PageText("1"), new PageCraftingRecipe("2", RecipesBA.elven_altar));
 		elven_altar.setIcon(new ItemStack(BlocksBA.ELVEN_ALTAR));

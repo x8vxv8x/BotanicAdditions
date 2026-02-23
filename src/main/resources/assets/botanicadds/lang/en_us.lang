@@ -35,7 +35,6 @@ item.botanicadds:rune_tp.name=Rune of Teleportation
 item.botanicadds:rune_energy.name=Rune of Energy
 item.botanicadds:mana_lapis.name=Mana Lapis
 item.botanicadds:elven_lapis.name=Elven Lapis
-item.botanicadds:gaia_shard.name=Gaia Shard
 item.botanicadds:gaiasteel_ingot.name=Gaiasteel Ingot
 item.botanicadds:terra_protector.name=Terra Protector
 item.botanicadds:ring_aura_gaia.name=Gaia Band of Aura
@@ -68,7 +67,6 @@ botania.entry.ba_terra_catalyst=Terra Catalyst
 botania.tagline.ba_terra_catalyst=Handling much more complex items
 botania.page.ba_terra_catalyst1=&1Terra Catalyst&0 is used as another type of catalyst. It may also be used as a splitter for some resources such as &1Gaia Spirit&0.
 botania.page.ba_terra_catalyst2=Crafting the &1Terra Catalyst&0.
-botania.page.ba_terra_catalyst3=Conjuring some &1Gaia Shards&0.
 
 botania.entry.ba_rain_flower=Rain Flower
 botania.tagline.ba_rain_flower=Produces mana from rain.

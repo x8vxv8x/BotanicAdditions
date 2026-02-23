@@ -47,10 +47,10 @@ public class BotanicAdditions
 {
 	public static final List<Class<? extends SubTileEntity>> flowers = null;
 
-	@SidedProxy(serverSide = "tk.zeitheron.botanicadds.proxy.CommonProxy", clientSide = "tk.zeitheron.botanicadds.proxy.ClientProxy")
-	public static CommonProxy proxy;
+	@SidedProxy(serverSide = "tk.zeitheron.botanicadds.proxy.CommonProxy",
+			    clientSide = "tk.zeitheron.botanicadds.proxy.ClientProxy")
 
-	public static final Logger LOG = LogManager.getLogger(InfoBA.MOD_ID);
+	public static CommonProxy proxy;
 
 	public static final CreativeTabs TAB = new CreativeTabs(InfoBA.MOD_ID)
 	{
@@ -127,19 +127,4 @@ public class BotanicAdditions
 		}
 	}
 
-	@SubscribeEvent
-	public static void registerRecipes(RegistryEvent.Register<IRecipe> e)
-	{
-		ResourceLocation ultraSpreader = new ResourceLocation("botania", "spreader_3");
-
-		ForgeRegistryUtils.deleteEntry(e.getRegistry(), ultraSpreader);
-
-		ModContainer c = Loader.instance().activeModContainer();
-
-		Loader.instance().setActiveModContainer(Loader.instance().getIndexedModList().get("botania"));
-		// Begin overrides
-		e.getRegistry().register(SimpleRegistration.parseShapedRecipe(new ItemStack(ModBlocks.spreader, 1, 3), "gsd", 'g', new ItemStack(ItemsBA.GAIA_SHARD), 's', new ItemStack(ModBlocks.spreader, 1, 2), 'd', LibOreDict.DRAGONSTONE).setRegistryName(ultraSpreader));
-		//End overrides
-		Loader.instance().setActiveModContainer(c);
-	}
 }

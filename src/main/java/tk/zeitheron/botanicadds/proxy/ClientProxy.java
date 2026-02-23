@@ -52,8 +52,6 @@ public class ClientProxy extends CommonProxy
 	@Override
 	public void init()
 	{
-		Minecraft.getMinecraft().getItemColors().registerItemColorHandler((s, t) -> Color.HSBtoRGB(Botania.proxy.getWorldElapsedTicks() * 2 % 360 / 360F, 0.25F, 1F), ItemsBA.GAIA_SHARD);
-		
 		super.init();
 	}
 	
@@ -65,19 +63,6 @@ public class ClientProxy extends CommonProxy
 			Flower fl = cl.getDeclaredAnnotation(Flower.class);
 			BotaniaAPIClient.registerSubtileModel(cl, new ModelResourceLocation(InfoBA.MOD_ID + ":" + fl.value()));
 		}
-	}
-	
-	public static TextureAtlasSprite terraCatalystOverlay;
-	
-	@SubscribeEvent
-	public void onTextureStitch(TextureStitchEvent.Pre evt)
-	{
-		terraCatalystOverlay = forName(evt.getMap(), "terra_catalyst_overlay", "blocks");
-	}
-	
-	public static TextureAtlasSprite forName(TextureMap ir, String name, String dir)
-	{
-		return ir.registerSprite(new ResourceLocation(InfoBA.MOD_ID, dir + "/" + name));
 	}
 	
 	@SubscribeEvent
